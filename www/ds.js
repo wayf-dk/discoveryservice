@@ -1,5 +1,5 @@
 /**
-    ds is a javascript function that handles the client side logic of the WAYF discovery service
+    ds is a javascript object that handles the client side logic of the WAYF discovery service
 
 */
 
@@ -8,6 +8,8 @@ window.ds = function(wayfhub, brief, show, logtag) {
     var diskofeed = `https://${location.hostname}/dsbackend?`;
     var starttime = new Date();
     var urlParams = this.urlParams = parseQuery(window.location.search);
+    var dry = Boolean(urlParams['dry']);
+
     var wayfhack = urlParams.entityID == wayfhub;
     //var feds = urlParams['feds'] ? urlParams.feds.split(/,+/) : [];
     var feds = window.location.pathname.split(/\W/).filter(function(v) {
@@ -168,15 +170,17 @@ window.ds = function(wayfhub, brief, show, logtag) {
             if (wayfhack) {
                 idp = idp.replace(/birk\.wayf\.dk\/birk\.php\//, '')
             };
-            idp = encodeURIComponent(idp);
+            var encodedidp = encodeURIComponent(idp);
             var request = new XMLHttpRequest();
             var delta = new Date() - starttime
-            request.open("GET", `https://${location.hostname}/dstiming?logtag=${logtag}&delta=${delta}&idp=${idp}`, true);
+            request.open("GET", `https://${location.hostname}/dstiming?logtag=${logtag}&delta=${delta}&idp=${encodedidp}`, true);
             request.send();
-
-            alert("You are being sent to " + displayName + " (" + idp + ")");
-            window.location = window.location;
-            //window.location = urlParams['return'] + '&' + urlParams['returnIDParam'] + '=' + idp;
+            if (dry) {
+                alert(`You are being sent to ${displayName} (${idp})`);
+                window.location = window.location;
+            } else {
+                window.location = `${urlParams['return']}&${urlParams['returnIDParam']}=${encodedidp}`;
+            }
         }
     }
 
