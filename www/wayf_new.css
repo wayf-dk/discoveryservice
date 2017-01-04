@@ -1,0 +1,278 @@
+/*
+	colorcodes we use
+
+	dark green : #66b340
+	light green: #5bac26
+	grey :
+
+*/
+
+/* Tell the browser to render HTML 5 elements as block */
+#header, #subheader, #greyback, #sectionouter, #section, #footer { display: block; }
+
+#searchInput
+{
+	border-radius: 5px;
+	/* background-image: url('../../resources/icons/silk/magnifier.png'); */
+	background-image: url('/amarok_search_16x16.png');
+	background-repeat: no-repeat;
+	background-position: center right;
+	background-size: 12px;
+	border: 1px solid #ccc;
+	padding: 2px 2px 2px 2px;
+	margin: 0px 2px 0px 0px;
+}
+
+#foundlist, #chosenlist { margin: 1em 0; }
+#found, #refine { font-weight: bold; margin: 1em; }
+
+div.idp
+{
+	display: inline;
+	text-decoration: underline solid #73880A;
+}
+
+div.metaentry
+{
+	cursor: pointer;
+	/* #5bac26; */
+	color: #73880A;
+}
+
+.metaentry > span
+{
+	margin-left: 10px;
+	padding: 3px;
+	color: black;
+	background: rgba(102,179,64,.3) !important;
+	border: thin solid rgba(102,179,64,.3);
+	border-radius: 5px;
+	display: none;
+}
+
+.unchosen
+{
+	margin-left: 1.1em;
+}
+
+.chosen::before
+{
+	content: "\002A09";
+	/* Multiplication X */
+	color: orange;
+	margin-right: .5em;
+}
+
+.touch div.metaentry { padding: .5em .1em; }
+.no-touch .selected > span { display: inline; }
+.no-touch .selected {   /* background: rgba(102,179,64,.3) !important; */ }
+
+body
+{
+	margin: 0 auto;
+	width: 100%;
+	font: 13px/22px Helvetica, Arial, sans-serif;
+	background: white;
+}
+
+#header
+{
+	margin-top: 15px;
+	margin-left: auto;
+	margin-right: auto;
+	position: relative;
+	background: url("wayf-logo-h60px.png") no-repeat bottom left, url("deic.png") no-repeat bottom right;
+	background-size: auto 100%, auto 85%;
+	background-origin: content-box, content-box;
+	bottom: 2px;
+	height: 60px;
+	padding-right: 20px;
+	padding-left: 20px;
+	max-width: 880px;
+}
+
+#lang { }
+
+#lang a
+{
+	color: #504d4e;
+	text-decoration: none;
+	margin-right: 100px;
+	margin-bottom: 5px;
+}
+
+#lang a:hover
+{
+	color: #73880a;
+	text-decoration: underline;
+}
+
+#subheader
+{
+	height: 15px;
+	margin: 0px;
+	margin-top: 5px;
+	margin-bottom: 3px;
+	width: 100%;
+	background-color: #66b340;
+	/*	background-color: black; */
+}
+
+/* make round corners */
+#sectionouter
+{
+	width: auto;
+	/*
+	margin-top: 15px;
+ */
+	margin-left: auto;
+	margin-right: auto;
+	/*
+    background-color: #87898c;
+
+    border: 1px solid #49494B;
+    -webkit-border-radius: 17px;
+    -moz-border-radius: 17px;
+	behavior: url("/border-radius.htc");
+    border-radius: 17px;
+ */
+	padding: 10px;
+	max-width: 880px;
+}
+
+#section
+{
+	margin: 0px 0px 0px 0px;
+	background-color: white;
+	width: 100% auto;
+	height: 100% auto;
+	/*    border: 1px solid #49494B;*/
+	border: 1px solid #5bac26;
+	-webkit-border-radius: 10px;
+	-moz-border-radius: 10px;
+	border-radius: 10px;
+	behavior: url("/border-radius.htc");
+	/*
+    min-height: 400px;
+    line-height: normal;
+ */
+	padding: 10px 10px 10px 10px;
+}
+
+#footer
+{
+	line-height: normal;
+	margin-top: 1em;
+	margin-left: auto;
+	margin-right: auto;
+	padding-left: 20px;
+	font-size: 80%;
+	max-width: 880px;
+}
+
+#colofonline
+{
+	border-bottom: 3px solid;
+	border-bottom-color: #7CBC54;
+	color: #49494B;
+	width: 100px;
+}
+
+a { color: #73880A; }
+div.icon { margin-bottom: 10px; }
+
+div.icon img
+{
+	display: block;
+	max-height: 40px;
+	max-width: 130px;
+	vertical-align: text-top;
+	margin-left: 2em;
+}
+
+#changelang:hover
+{
+	color: #73880a;
+	text-decoration: underline;
+}
+
+#changelang, #feedback
+{
+	position: absolute;
+	text-decoration: none;
+	bottom: -7px;
+}
+
+#changelang { right: 190px; }
+#feedback { right: 245px; }
+
+#wayflogo
+{
+	display: block;
+	text-indent: -9999px;
+	height: 75px;
+	width: 170px;
+}
+
+#deiclogo
+{
+	display: block;
+	text-indent: -9999px;
+	height: 75px;
+	width: 120px;
+	position: absolute;
+	right: 0;
+	top: 0;
+}
+
+@media only screen and (max-width: 800px)
+{
+	div.icon img
+	{
+		margin: 10px 0;
+		display: block;
+	}
+
+	#header
+	{
+		margin-top: 8px;
+		margin-left: auto;
+		margin-right: auto;
+		position: relative;
+		background: url("wayf-logo-h60px.png") no-repeat bottom left, url("deic.png") no-repeat bottom right;
+		background-size: auto 100%, auto 90%;
+		background-origin: content-box, content-box;
+		padding-right: 10px;
+		bottom: 2px;
+		height: 30px;
+	}
+
+	#subheader
+	{
+		height: 7px;
+		margin-top: 2px;
+	}
+
+	#changelang, #feedback { bottom: -5px; }
+	#changelang { right: 100px; }
+	#feedback { right: 155px; }
+
+	#wayflogo
+	{
+		display: block;
+		text-indent: -9999px;
+		height: 30px;
+		width: 80px;
+	}
+
+	#deiclogo
+	{
+		display: block;
+		text-indent: -9999px;
+		height: 30px;
+		width: 80px;
+		position: absolute;
+		right: 0;
+		top: 0;
+	}
+}
