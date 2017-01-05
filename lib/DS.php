@@ -57,19 +57,8 @@ class dsbe {
         $tobefound = $end - $start;
         $cfg = self::$config;
         self::timer('start');
-        $idps = json_decode(gzdecode(file_get_contents($cfg['discofeed'])), 1);
-        self::timer('read_ds');
         $feds = $feds ? explode(',', $feds) : [];
 
-        $chunksize = 200;
-        $chunks = [];
-        foreach ($idps as $i => $idp) {
-            $chunk = (int) $i/$chunksize;
-            if (empty($chunks[$chunk])) { $chunks[$chunk] = ''; };
-            $chunks[$chunk] .= " " . $idp['Keywords'][0]['value'];
-        }
-
-        self::timer('chunk');
         $logo = $displayName = null;
 
         if ($entityID && $spmetadata = @file_get_contents($cfg['mdq'] . sha1($entityID), false,stream_context_create(array(
@@ -101,70 +90,86 @@ class dsbe {
        // $feds = ['kalmar2']; //, 'WAYF', 'eduGAIN'];
 
         $qs = [];
-        $qqs = '';
-        $queries = preg_split("/\s+/", strtolower(trim(latinise::str2latin($query))));
-        foreach ($queries as $q) {
-            $qs[] = "\\b" .  preg_quote(preg_replace("/[^\w\.\-\']/", "", $q));
-        }
-
-        $res = [];
-        $found = 0;
-
-        $qqs = "/(" . join(')|(', $qs) . ')/';
-        foreach ($chunks as $no => $chunk) {
-            if (!preg_match($qqs, $chunk)) { continue; }
-
-            foreach(range(1,1) as $x) {
-//            foreach ($idps as $i => $idp) {
-
-            $chunkstart = $no * $chunksize;
-            $chunkend   = min($chunkstart + $chunksize, sizeof($idps));
-            for ($i = $chunkstart; $i < $chunkend; $i++ ) {
-                $idp = $idps[$i];
-
-                if (array_intersect($idp['feds'], $feds)) {
-                    $hits = 0;
-                    foreach ($qs as $q) {
-                        if (preg_match("/$q/", $idp['Keywords'][0]['value'])) {
-                            $hits++;
-                        }
-                    }
-                    if ($hits == sizeof($queries)) {
-                        if ($found < $tobefound) {
-                            $res[] = $i;
-                        }
-                        $found++;
-                    }
-                }
-    //            if ($found >= $tobefound) { break; }
-            }
-            }
-        }
-
-        $rows = sizeof($res);
-        $res = array_slice($res, $start, $end - $start + 1);
         $final = [];
+        $found = $rows = 0;
 
-        foreach($res as $i) {
-            $displayNames = [];
-            foreach($idps[$i]['DisplayNames'] as $dn) {
-                if (in_array($dn['lang'], ['da', 'en'])) { $displayNames[$dn['lang']] = $dn['value']; }
+        if ($end >= $start) {
+            $idps = json_decode(gzdecode(file_get_contents($cfg['discofeed'])), 1);
+            self::timer('read_ds');
+
+            $chunksize = 200;
+            $chunks = [];
+            foreach ($idps as $i => $idp) {
+                $chunk = (int) $i/$chunksize;
+                if (empty($chunks[$chunk])) { $chunks[$chunk] = ''; };
+                $chunks[$chunk] .= " " . $idp['Keywords'][0]['value'];
             }
-//             foreach ([$lang, 'en'] as $l) {
-//                 if (isset($displayNames[$l])) {
-//                     $idpName = $displayNames[$l];
-//                     break;
-//                 }
-//             }
 
-            $final[] = ['entityID' => $idps[$i]['entityID'], 'DisplayNames' => $displayNames, 'Keywords' => $idps[$i]['Keywords'][0]['value']];
+            self::timer('chunk');
+
+
+            $qqs = '';
+            $queries = preg_split("/\s+/", strtolower(trim(latinise::str2latin($query))));
+            foreach ($queries as $q) {
+                $qs[] = "\\b" .  preg_quote(preg_replace("/[^\w\.\-\']/", "", $q));
+            }
+
+            $res = [];
+
+            $qqs = "/(" . join(')|(', $qs) . ')/';
+            foreach ($chunks as $no => $chunk) {
+                if (!preg_match($qqs, $chunk)) { continue; }
+
+                foreach(range(1,1) as $x) {
+    //            foreach ($idps as $i => $idp) {
+
+                $chunkstart = $no * $chunksize;
+                $chunkend   = min($chunkstart + $chunksize, sizeof($idps));
+                for ($i = $chunkstart; $i < $chunkend; $i++ ) {
+                    $idp = $idps[$i];
+
+                    if (array_intersect($idp['feds'], $feds)) {
+                        $hits = 0;
+                        foreach ($qs as $q) {
+                            if (preg_match("/$q/", $idp['Keywords'][0]['value'])) {
+                                $hits++;
+                            }
+                        }
+                        if ($hits == sizeof($queries)) {
+                            if ($found < $tobefound) {
+                                $res[] = $i;
+                            }
+                            $found++;
+                        }
+                    }
+        //            if ($found >= $tobefound) { break; }
+                }
+                }
+            }
+
+            $rows = sizeof($res);
+            $res = array_slice($res, $start, $end - $start + 1);
+
+            foreach($res as $i) {
+                $displayNames = [];
+                foreach($idps[$i]['DisplayNames'] as $dn) {
+                    if (in_array($dn['lang'], ['da', 'en'])) { $displayNames[$dn['lang']] = $dn['value']; }
+                }
+    //             foreach ([$lang, 'en'] as $l) {
+    //                 if (isset($displayNames[$l])) {
+    //                     $idpName = $displayNames[$l];
+    //                     break;
+    //                 }
+    //             }
+
+                $final[] = ['entityID' => $idps[$i]['entityID'], 'DisplayNames' => $displayNames, 'Keywords' => $idps[$i]['Keywords'][0]['value']];
+            }
+
+            self::timer('search');
         }
-
-        self::timer('search');
-
         header('Content-Type: application/javascript');
         header('Content-Encoding: gzip');
-        print gzencode(json_encode(['qs' => $qs, 'found' => $found, 'rows' => $rows, 'feds' => $feds, 'idps' => $final, 'logo' => $logo, 'displayName' => $displayName], JSON_PRETTY_PRINT));
+        print gzencode(json_encode(['qs' => getcwd(), 'found' => $found, 'rows' => $rows, 'feds' => $feds, 'idps' => $final, 'logo' => $logo, 'displayName' => $displayName], JSON_PRETTY_PRINT));
         //self::timer();
     }
 

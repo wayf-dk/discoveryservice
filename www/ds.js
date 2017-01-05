@@ -270,7 +270,7 @@ window.ds = function(wayfhub, brief, show, logtag) {
     function search() {
         var query = searchInput.value.trim();
 
-        discoverybackend(requestcounter ? '' : entityid, query, 0, show, feds, function(dsbe) {
+        discoverybackend(requestcounter ? '' : entityid, query, 0, query || !brief ? show : -1 , feds, function(dsbe) {
             renderrows(dsbe, query);
             feds = dsbe.feds;
 
