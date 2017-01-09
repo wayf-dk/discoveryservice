@@ -3,18 +3,21 @@
 
 */
 
-window.ds = function(wayfhub, brief, show, logtag) {
+window.ds = function(wayfhub, brief, show, logtag, prefix) {
     show = show || 100;
-    var diskofeed = `https://${location.hostname}/dsbackend?`;
+    var diskofeed = location.protocol + '//' + location.hostname + prefix + 'dsbackend?';
     var starttime = new Date();
     var urlParams = this.urlParams = parseQuery(window.location.search);
     var dry = Boolean(urlParams['dry']);
 
     var wayfhack = urlParams.entityID == wayfhub;
     //var feds = urlParams['feds'] ? urlParams.feds.split(/,+/) : [];
-    var feds = window.location.pathname.split(/\W/).filter(function(v) {
+/*
+    var feds = window.location.pathname.split(/\//).pop().split(/\W/).filter(function(v) {
         return v;
     }) || ['WAYF'];
+ */
+    var feds = ['WAYF'];
     var idplist = [];
     var maxrememberchosen = 3;
     var searchInput = document.getElementById("searchInput");
@@ -26,7 +29,7 @@ window.ds = function(wayfhub, brief, show, logtag) {
     //searchInput.selectionStart = searchInput.selectionEnd = searchInput.value.length;
 
     var chosen = JSON.parse(localStorage.entityID || "[]");
-    var lastchosen = Number.parseInt(localStorage.lastchosen || '0');
+    var lastchosen = parseInt(localStorage.lastchosen || '0');
     var selectable = 0;
     var requestcounter = 0;
 
@@ -80,8 +83,8 @@ window.ds = function(wayfhub, brief, show, logtag) {
         var list = selectable >= chosen.length ? 'foundlist' : 'chosenlist';
         var sel = document.getElementById(list).children[selectable];
         if (sel != null && sel.firstChild != null) {
-            sel.firstChild.className = "idp";
-            sel.classList.remove("selected");
+            // ie 9 classList.remove
+            sel.className = sel.className.split(' ').filter(function(v) { return v != 'selected'}).join(' ');
         }
 
         if (no == null) { // after search set to 1st in filtered list
@@ -104,8 +107,8 @@ window.ds = function(wayfhub, brief, show, logtag) {
         list = selectable >= chosen.length ? 'foundlist' : 'chosenlist';
         sel = document.getElementById(list).children[selectable];
         if (sel && sel.firstChild != null) {
-            sel.classList.add("selected");
-            sel.firstChild.className = "idp";
+            // ie 9 compat add
+            sel.className = sel.className.split(' ').concat('selected').join(' ');
         }
     }
 
@@ -136,11 +139,11 @@ window.ds = function(wayfhub, brief, show, logtag) {
         } else { // return with selected IdP
             no = parseInt(no.value);
 
-            var prevchosen = chosen.findIndex(function(item) {
+            var prevchosen = chosen.some(function(item) {
                 return idplist[no].entityID == item.entityID;
             });
 
-            if (prevchosen == -1) { // new
+            if (!prevchosen) { // new
                 chosen.unshift(idplist[no]);
                 chosen = chosen.slice(0, maxrememberchosen);
                 last = 0;
@@ -173,13 +176,13 @@ window.ds = function(wayfhub, brief, show, logtag) {
             var encodedidp = encodeURIComponent(idp);
             var request = new XMLHttpRequest();
             var delta = new Date() - starttime
-            request.open("GET", `https://${location.hostname}/dstiming?logtag=${logtag}&delta=${delta}&idp=${encodedidp}`, true);
+            request.open("GET", location.protocol + '//' + location.hostname + '/dstiming?logtag=' + logtag + '&delta=' + delta + '&idp=' + encodedidp + '', true);
             request.send();
             if (dry) {
-                alert(`You are being sent to ${displayName} (${idp})`);
+                alert('You are being sent to ' + displayName + ' (' + idp + ')');
                 window.location = window.location;
             } else {
-                window.location = `${urlParams['return']}&${urlParams['returnIDParam']}=${encodedidp}`;
+                window.location = '' + urlParams['return'] + '&' + urlParams['returnIDParam'] + '=' + encodedidp + '';
             }
         }
     }
@@ -203,9 +206,21 @@ window.ds = function(wayfhub, brief, show, logtag) {
             delta: new Date() - starttime
         };
 
-        var param = Object.entries(urlvalue).map(function(v) {
-            return v[0] + '=' + encodeURIComponent(v[1]);
+
+/*      ie < 9 does not support map
+        var param = Object.keys(urlvalue).map(function(v) {
+            return v + '=' + encodeURIComponent(urlvalue[v]);
         }).join('&');
+
+ */
+
+        var params = Object.keys(urlvalue);
+        var param = '';
+        var delim = '';
+        for (var i = 0; i < params.length; i++) {
+            param += delim + params[i] + '=' + urlvalue[params[i]];
+            delim = '&';
+        }
 
         // add entityID + lang for getting the name of the sp in the correct language
         // if no language the maybe don't return icon and name ???
@@ -236,7 +251,7 @@ window.ds = function(wayfhub, brief, show, logtag) {
         idplist = [];
         var lists = {
             chosenlist: chosen,
-            foundlist: query || !brief ? dsbe.idps : [],
+            foundlist: query || !brief ? dsbe.idps : []
         }
 
         var no = 0;
@@ -253,11 +268,11 @@ window.ds = function(wayfhub, brief, show, logtag) {
                     entityID: entityID,
                     Keywords: lists[k][i].Keywords
                 };
-                rows[i] = `<div class="${classs} metaentry"><div title="${title} ${no}" class="idp" data-no="${no}">${name}</div><span title="Press enter to select">⏎</span></div>`;
+                rows[i] = '<div class="' + classs + ' metaentry"><div title="' + title + ' ' + no + '" class="idp" data-no="' + no + '">' + name + '</div><span title="Press enter to select">⏎</span></div>';
                 no++;
             }
             // fakedivs to make the selected work across the lists
-            var fakedivs = k == 'foundlist' ? '<div></div>'.repeat(lists['chosenlist'].length) : '';
+            var fakedivs = k == 'foundlist' ? Array(lists['chosenlist'].length + 1).join('<div></div>') : '';
             document.getElementById(k).innerHTML = fakedivs + rows.join('');
         });
     }
@@ -268,7 +283,7 @@ window.ds = function(wayfhub, brief, show, logtag) {
     */
 
     function search() {
-        var query = searchInput.value.trim();
+        var query = searchInput.value.replace(/^[\s\uFEFF\xA0]+|[\s\uFEFF\xA0]+$/g, ''); // ie < 9 polyfill for trim
 
         discoverybackend(requestcounter ? '' : entityid, query, 0, query || !brief ? show : -1 , feds, function(dsbe) {
             renderrows(dsbe, query);
