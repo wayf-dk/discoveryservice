@@ -19,6 +19,11 @@ class dsbe {
         self::$config = $config;
         $path = preg_split("/[\?]/", $_SERVER['REQUEST_URI'], 0, PREG_SPLIT_NO_EMPTY);
         $path = (array)preg_split("/[\/]/", $path[0], 0, PREG_SPLIT_NO_EMPTY);
+        $scriptnamepath = array_slice(preg_split("/[\/]/", $_SERVER['PHP_SELF'], 0, PREG_SPLIT_NO_EMPTY), 0, -1);
+
+        $pathindex = sizeof($scriptnamepath);
+
+        $cmd = isset($path[$pathindex]) ? $path[$pathindex] : '';
 
         $cmd = isset($path[0]) ? $path[0] : '';
 
@@ -30,6 +35,7 @@ class dsbe {
             call_user_func($function, $path);
         } else {
             $logtag = uniqid();
+            $prefix = '/' . join('/', $scriptnamepath) . '/';
             apache_note('logtag', $logtag);
             require('../lib/DS.html');
         }
@@ -169,7 +175,7 @@ class dsbe {
         }
         header('Content-Type: application/javascript');
         header('Content-Encoding: gzip');
-        print gzencode(json_encode(['qs' => getcwd(), 'found' => $found, 'rows' => $rows, 'feds' => $feds, 'idps' => $final, 'logo' => $logo, 'displayName' => $displayName], JSON_PRETTY_PRINT));
+        print gzencode(json_encode(['qs' => $qs, 'found' => $found, 'rows' => $rows, 'feds' => $feds, 'idps' => $final, 'logo' => $logo, 'displayName' => $displayName], JSON_PRETTY_PRINT));
         //self::timer();
     }
 
