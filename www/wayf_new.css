@@ -14,7 +14,7 @@
 {
 	border-radius: 5px;
 	/* background-image: url('../../resources/icons/silk/magnifier.png'); */
-	background-image: url('/amarok_search_16x16.png');
+	background-image: url('amarok_search_16x16.png');
 	background-repeat: no-repeat;
 	background-position: center right;
 	background-size: 12px;
@@ -30,6 +30,7 @@ div.idp
 {
 	display: inline;
 	text-decoration: underline solid #73880A;
+	-webkit-text-decoration: underline solid #73880A;
 }
 
 div.metaentry
@@ -57,7 +58,7 @@ div.metaentry
 
 .chosen::before
 {
-	content: "\002A09";
+	content: 'X';
 	/* Multiplication X */
 	color: orange;
 	margin-right: .5em;
@@ -227,6 +228,14 @@ div.icon img
 
 @media only screen and (max-width: 800px)
 {
+    body
+    {
+        margin: 0 auto;
+        width: 100%;
+        font: 18px/27px Helvetica, Arial, sans-serif;
+        background: white;
+    }
+
 	div.icon img
 	{
 		margin: 10px 0;
@@ -275,4 +284,11 @@ div.icon img
 		right: 0;
 		top: 0;
 	}
+
+	#searchInput
+    {
+        font-size: 22px;
+    }
+
+
 }
