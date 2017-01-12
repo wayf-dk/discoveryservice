@@ -1,5 +1,2 @@
 discofeed = ../testdata/wayf-interfed.discofeed.jsgz
 mdq       = ../testdata/{sha1}
-;discofeed = /home/ndn-wayf/phph.wayf.dk/public/DS/wayf-interfed.discofeed.jsgz
-;mdq       = /home/ndn-wayf/phph.wayf.dk/public/MDQ/HUB-OPS/entities/{sha1}
-
