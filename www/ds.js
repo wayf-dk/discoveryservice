@@ -250,7 +250,7 @@ window.ds = function(wayfhub, brief, show, logtag, prefix) {
         idplist = [];
         var lists = {
             chosenlist: chosen,
-            foundlist: query || !brief ? dsbe.idps : []
+            foundlist: query || !brief || dsbe.rows == dsbe.found ? dsbe.idps : []
         }
 
         var no = 0;
@@ -282,11 +282,11 @@ window.ds = function(wayfhub, brief, show, logtag, prefix) {
     */
 
     function search() {
-        var query = searchInput.value.replace(/^[\s\uFEFF\xA0]+|[\s\uFEFF\xA0]+$/g, ''); // ie < 9 polyfill for trim
+        var query = searchInput.value.trim();
 
-        discoverybackend(requestcounter ? '' : entityid, query, 0, query || !brief ? show : -1 , feds, function(dsbe) {
+        discoverybackend(requestcounter ? '' : entityid, query, 0, show, feds, function(dsbe) {
             renderrows(dsbe, query);
-            feds = dsbe.feds;
+            // feds = dsbe.feds; // when we start using ad-hoc feds
 
             if (!requestcounter) {
                 spIcon.src = dsbe.logo;
@@ -294,7 +294,7 @@ window.ds = function(wayfhub, brief, show, logtag, prefix) {
                 cache.spName = dsbe.displayName || entityid;
             }
             requestcounter++;
-            display(cache.spName, query || !brief ? dsbe.rows : 0, dsbe.found);
+            display(cache.spName, dsbe.rows, dsbe.found);
             document.getElementById('found').hidden = idplist.length > chosen.length ? false : true;
             document.getElementById('refine').hidden = (query || !brief) && dsbe.rows < dsbe.found ? false : true;
             setselectable(query == "" ? lastchosen : null, true);
