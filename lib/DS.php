@@ -121,7 +121,6 @@ class dsbe {
             }
 
             $res = [];
-
             $qqs = "/(" . join(')|(', $qs) . ')/';
             foreach ($chunks as $no => $chunk) {
                 if (!preg_match($qqs, $chunk)) { continue; }
@@ -142,19 +141,16 @@ class dsbe {
                             }
                         }
                         if ($hits == sizeof($queries)) {
-                            if ($found < $tobefound) {
-                                $res[] = $i;
-                            }
+                            $res[] = $i;
                             $found++;
                         }
                     }
-        //            if ($found >= $tobefound) { break; }
                 }
                 }
             }
 
+            $res = array_slice($res, $start, $end - $start);
             $rows = sizeof($res);
-            $res = array_slice($res, $start, $end - $start + 1);
 
             foreach($res as $i) {
                 $displayNames = [];
