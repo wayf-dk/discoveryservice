@@ -79,7 +79,7 @@
      		    }
      		}
 
-		    var tpl = templates[lang];
+		    var tpl = templates[uilang];
 		    templated.forEach(function(sel) {
 		      document.querySelector(sel).innerHTML = tpl[sel.substr(1)];
 		    })
@@ -88,7 +88,7 @@
 		    })
 		}
 
-		var se = new ds('https://wayf.wayf.dk', false, 100, '<?= $logtag ?>', '<?= $prefix ?>');
+		var se = new ds('https://wayf.wayf.dk', true, 100, '<?= $logtag ?>', '<?= $prefix ?>');
 	</script>
 </body>
 </html>
