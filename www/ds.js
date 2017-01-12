@@ -11,13 +11,12 @@ window.ds = function(wayfhub, brief, show, logtag, prefix) {
     var dry = Boolean(urlParams['dry']);
 
     var wayfhack = urlParams.entityID == wayfhub;
-    //var feds = urlParams['feds'] ? urlParams.feds.split(/,+/) : [];
-/*
+
     var feds = window.location.pathname.split(/\//).pop().split(/\W/).filter(function(v) {
         return v;
-    }) || ['WAYF'];
- */
-    var feds = ['WAYF'];
+    });
+
+    //var feds = ['WAYF'];
     var idplist = [];
     var maxrememberchosen = 3;
     var searchInput = document.getElementById("searchInput");
