@@ -26,20 +26,25 @@
 	</div>
 	<div id="sectionouter">
 		<div id="section">
-			<div class="icon sp-info">
-				<strong id="spname">
-				</strong>
-				<img id="splogo" src="" alt="">
-			</div>
-			<div class="container">
-				<div id="chosenlist">
-				</div>
-				<input id="searchInput" placeholder="søg her" type="search" size=20 autofocus>
-				<div id="found">
-				</div>
-				<div id="foundlist">
-				</div>
-				<div id="refine">
+            <div id=error>
+
+            </div>
+            <div id=content>
+                <div class="icon sp-info">
+                    <strong id="spname">
+                    </strong>
+                    <img id="splogo" src="" alt="">
+                </div>
+                <div class="container">
+                    <div id="chosenlist">
+                    </div>
+                    <input id="searchInput" placeholder="søg her" type="search" size=20 autofocus>
+                    <div id="found">
+                    </div>
+                    <div id="foundlist">
+                    </div>
+                    <div id="refine">
+                    </div>
 				</div>
 			</div>
 		</div>
@@ -54,38 +59,50 @@
 		var lang = (navigator.language || navigator.userLanguage).slice(0, 2);
 		var templated = ['#spname', '#found', '#changelang', '#footer', '#refine'];
 		var placeholders = ['#searchInput'];
+		var errors = '#error';
+        var content = '#content';
 
 		var spIcon = document.querySelector("#splogo");
 		var xxx = document.querySelector("#searchInput");
 
-		function display(spname, showing, found) {
+		function display(spname, showing, found, error) {
 		    var uilang = lang == 'da' || lang == 'en' ? lang : 'en';
 		    templates = {
 		        da: {
-		            spname: 'For at få adgang til "' + spname + '" skal du logge ind på din institution',
+		            spname: 'For at få adgang til "' + spname + '" skal du vælge din institution',
 		            found:  'Viser ' + showing + ' ud af ' + found + ':',
 		            changelang: 'English',
 		            footer: '<h3>WAYF-sekretariatet</h3><p>Asmussens Allé, bygning 305<br /> 2800 Kgs. Lyngby<br /> Denmark<br /><br /> www.wayf.dk <br /> sekretariat@wayf.dk <br /></p><div id="colofonline"></div>',
 		            refine: 'Ikke alle fundne bliver vist - prøv at søge mere specifikt',
 		            searchInput: 'Søg her',
+		            error: 'Ukendt tjeneste: ' + spname,
 		        },
 		        en: {
-		            spname: 'To acces "' + spname + '" please login at your institution',
+		            spname: 'To access "' + spname + '" please choose your institution',
 		            found:  'Showing ' + showing + ' of ' + found + ':',
 		            changelang: 'Dansk',
 		            footer: '<h3>WAYF-sekretariat</h3><p>Asmussens Allé, Building 305<br /> DK-2800 Kgs. Lyngby<br /> Denmark<br /><br /> www.wayf.dk <br /> sekretariat@wayf.dk <br /></p><div id="colofonline"></div>',
 		            refine: 'Not all found entities are shown - try to make your search more specific',
 		            searchInput: 'Search here',
+		            error: 'Unknown service: ' + spname,
      		    }
      		}
-
 		    var tpl = templates[uilang];
+		    console.log(uilang)
 		    templated.forEach(function(sel) {
+		        console.log(sel);
 		      document.querySelector(sel).innerHTML = tpl[sel.substr(1)];
 		    })
 		    placeholders.forEach(function(sel) {
   		      document.querySelector(sel).placeholder = tpl[sel.substr(1)];
 		    })
+            if (error) {
+                document.querySelector(errors).innerHTML = templates[uilang].error;
+                document.querySelector(content).hidden = true;
+                return;
+            } else {
+                document.querySelector(errors).hidden = true;
+            }
 		}
 
 		var se = new ds('https://wayf.wayf.dk', true, 100, '<?= $logtag ?>', '<?= $prefix ?>');
