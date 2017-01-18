@@ -11,14 +11,11 @@ window.ds = function(wayfhub, brief, show, logtag, prefix) {
     var dry = Boolean(urlParams['dry']);
 
     var wayfhack = urlParams.entityID == wayfhub;
-
-    var feds = window.location.pathname.split(/\//).pop().split(/\W/).filter(function(v) {
-        return v;
-    });
+    feds = [];
 
     //var feds = ['WAYF'];
     var idplist = [];
-    var maxrememberchosen = 3;
+    var maxrememberchosen = 10;
     var searchInput = document.getElementById("searchInput");
 
     var cache = {};
@@ -118,6 +115,8 @@ window.ds = function(wayfhub, brief, show, logtag, prefix) {
 
     function choose(e) {
         var no, target, last = null;
+        searchInput.focus();
+
         var list = selectable >= chosen.length ? 'foundlist' : 'chosenlist';
         if (e == null) { // enter pressed
             var list =
@@ -205,14 +204,6 @@ window.ds = function(wayfhub, brief, show, logtag, prefix) {
             delta: new Date() - starttime
         };
 
-
-/*      ie < 9 does not support map
-        var param = Object.keys(urlvalue).map(function(v) {
-            return v + '=' + encodeURIComponent(urlvalue[v]);
-        }).join('&');
-
- */
-
         var params = Object.keys(urlvalue);
         var param = '';
         var delim = '';
@@ -285,8 +276,12 @@ window.ds = function(wayfhub, brief, show, logtag, prefix) {
         var query = searchInput.value.trim();
 
         discoverybackend(requestcounter ? '' : entityid, query, 0, show, feds, function(dsbe) {
+            if (!dsbe.spok) {
+                display(dsbe.displayName, dsbe.rows, dsbe.found, true);
+                return;
+            }
             renderrows(dsbe, query);
-            // feds = dsbe.feds; // when we start using ad-hoc feds
+            feds = dsbe.feds; // when we start using ad-hoc feds
 
             if (!requestcounter) {
                 spIcon.src = dsbe.logo;
