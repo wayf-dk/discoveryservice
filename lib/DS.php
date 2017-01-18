@@ -1,4 +1,7 @@
 <?php
+//ini_set('display_errors', 1);
+//error_reporting(E_ALL);
+
 spl_autoload_register();
 
 dsbe::dispatch(parse_ini_file('../config/ds.ini'));
@@ -17,6 +20,7 @@ class dsbe {
     static function dispatch($config)
     {
         self::$config = $config;
+
         $path = preg_split("/[\?]/", $_SERVER['REQUEST_URI'], 0, PREG_SPLIT_NO_EMPTY);
         $path = (array)preg_split("/[\/]/", $path[0], 0, PREG_SPLIT_NO_EMPTY);
         $scriptnamepath = array_slice(preg_split("/[\/]/", $_SERVER['PHP_SELF'], 0, PREG_SPLIT_NO_EMPTY), 0, -1);
@@ -61,45 +65,52 @@ class dsbe {
     static function dsbackend__($path) {
         extract(self::ex($_GET, 'entityID', 'query', 'start', 'end', 'lang', 'feds'));
         $tobefound = $end - $start;
+        $spmetadata = false;
         $cfg = self::$config;
         self::timer('start');
         $feds = $feds ? explode(',', $feds) : [];
+        //$feds = [];
 
         $logo = $displayName = null;
 
-        if ($entityID && $spmetadata = @file_get_contents($cfg['mdq'] . sha1($entityID), false,stream_context_create(array(
+        if ($entityID) {
+            if ($spmetadata = @file_get_contents($cfg['mdq'] . '{sha1}' .  sha1($entityID), false,stream_context_create(array(
                                                                                              'http' => array(
                                                                                                 'ignore_errors' => true))))) {
-            $spxp = xp::xpFromString($spmetadata);
-            $logo = $spxp->query("md:SPSSODescriptor/md:Extensions/mdui:UIInfo/mdui:Logo")->item(0);
-            if ($logo) {
-                $logo = $logo->nodeValue;
-            }
 
-            foreach([$lang, 'en'] as $l) {
-                $displayName = $spxp->query("//mdui:DisplayName[@xml:lang='{$l}']")->item(0);
-                if ($displayName) {
-                    $displayName = $displayName->nodeValue;
-                    break;
+                $spxp = xp::xpFromString($spmetadata);
+                $logo = $spxp->query("md:SPSSODescriptor/md:Extensions/mdui:UIInfo/mdui:Logo")->item(0);
+                if ($logo) {
+                    $logo = $logo->nodeValue;
                 }
-            }
 
-            if (!$feds) {
-                $fedsxml = $spxp->query("md:Extensions/wayf:wayf/wayf:feds");
-                foreach ($fedsxml as $fed) {
-                    $feds[] = $fed->nodeValue;
+                foreach([$lang, 'en'] as $l) {
+                    $displayName = $spxp->query("//mdui:DisplayName[@xml:lang='{$l}']")->item(0);
+                    if ($displayName) {
+                        $displayName = $displayName->nodeValue;
+                        break;
+                    }
                 }
+
+                if (sizeof($feds) == 0) {
+                    $fedsxml = $spxp->query("md:Extensions/wayf:wayf/wayf:feds");
+                    foreach ($fedsxml as $fed) {
+                        $feds[] = $fed->nodeValue;
+                    }
+                }
+                self::timer('md for sp');
             }
-            self::timer('md for sp');
         }
 
+        $spok = (bool) $entityID == (bool) $spmetadata;
+        $displayName = $spok ? $displayName : htmlspecialchars($entityID);
        // $feds = ['kalmar2']; //, 'WAYF', 'eduGAIN'];
 
         $qs = [];
         $final = [];
         $found = $rows = 0;
 
-        if ($end >= $start) {
+        if ($end >= $start && $spok) {
             $idps = json_decode(gzdecode(file_get_contents($cfg['discofeed'])), 1);
             self::timer('read_ds');
 
@@ -171,7 +182,7 @@ class dsbe {
         }
         header('Content-Type: application/javascript');
         header('Content-Encoding: gzip');
-        print gzencode(json_encode(['qs' => $qs, 'found' => $found, 'rows' => $rows, 'feds' => $feds, 'idps' => $final, 'logo' => $logo, 'displayName' => $displayName], JSON_PRETTY_PRINT));
+        print gzencode(json_encode(['spok' => $spok, 'qs' => $qs, 'found' => $found, 'rows' => $rows, 'feds' => $feds, 'idps' => $final, 'logo' => $logo, 'displayName' => $displayName], JSON_PRETTY_PRINT));
         //self::timer();
     }
 
