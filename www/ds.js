@@ -284,7 +284,7 @@ window.ds = function(wayfhub, brief, show, logtag, prefix) {
             feds = dsbe.feds; // when we start using ad-hoc feds
 
             if (!requestcounter) {
-                spIcon.src = dsbe.logo;
+                spIcon.src = dsbe.logo || 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs='
                 //spIcon.style.display = "block";
                 cache.spName = dsbe.displayName || entityid;
             }

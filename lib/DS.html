@@ -33,7 +33,7 @@
                 <div class="icon sp-info">
                     <strong id="spname">
                     </strong>
-                    <img id="splogo" src="" alt="">
+                    <img id="splogo" src="" alt="Service Provider Logo">
                 </div>
                 <div class="container">
                     <div id="chosenlist">
@@ -88,9 +88,7 @@
      		    }
      		}
 		    var tpl = templates[uilang];
-		    console.log(uilang)
 		    templated.forEach(function(sel) {
-		        console.log(sel);
 		      document.querySelector(sel).innerHTML = tpl[sel.substr(1)];
 		    })
 		    placeholders.forEach(function(sel) {
