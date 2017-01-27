@@ -33,6 +33,10 @@ div.idp
 	-webkit-text-decoration: underline solid #73880A;
 }
 
+.disabled div.idp {
+	text-decoration: line-through solid red;
+}
+
 div.metaentry
 {
 	cursor: pointer;
@@ -63,6 +67,7 @@ div.metaentry
 	color: orange;
 	margin-right: .5em;
 }
+
 
 .touch div.metaentry { padding: .5em .1em; }
 .no-touch .selected > span { display: inline; }
@@ -145,14 +150,10 @@ body
 {
 	margin: 0px 0px 0px 0px;
 	background-color: white;
-	width: 100% auto;
-	height: 100% auto;
 	/*    border: 1px solid #49494B;*/
 	border: 1px solid #5bac26;
 	-webkit-border-radius: 10px;
-	-moz-border-radius: 10px;
 	border-radius: 10px;
-	behavior: url("/border-radius.htc");
 	/*
     min-height: 400px;
     line-height: normal;
