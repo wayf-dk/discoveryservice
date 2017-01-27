@@ -63,13 +63,15 @@ class dsbe {
     */
 
     static function dsbackend__($path) {
-        extract(self::ex($_GET, 'entityID', 'query', 'start', 'end', 'lang', 'feds'));
+        extract(self::ex($_GET, 'entityID', 'query', 'start', 'end', 'lang', 'feds', 'superfeds', 'chosen'));
         $tobefound = $end - $start;
         $spmetadata = false;
         $cfg = self::$config;
         self::timer('start');
         $feds = $feds ? explode(',', $feds) : [];
-        //$feds = [];
+        $superfeds = $superfeds ? explode(',', $superfeds) : [];
+        $chosen = $chosen ? explode(',', $chosen) : [];
+        $chosen = array_fill_keys($chosen, 0);
 
         $logo = $displayName = null;
 
@@ -117,6 +119,11 @@ class dsbe {
             $chunksize = 200;
             $chunks = [];
             foreach ($idps as $i => $idp) {
+
+                if (isset($chosen[$idp['entityID']])) {
+                    $chosen[$idp['entityID']] = sizeof(array_intersect($idp['feds'], $feds)) > 0;
+                }
+
                 $chunk = (int) $i/$chunksize;
                 if (empty($chunks[$chunk])) { $chunks[$chunk] = ''; };
                 $chunks[$chunk] .= " " . $idp['Keywords'][0]['value'];
@@ -143,8 +150,8 @@ class dsbe {
                 $chunkend   = min($chunkstart + $chunksize, sizeof($idps));
                 for ($i = $chunkstart; $i < $chunkend; $i++ ) {
                     $idp = $idps[$i];
-
-                    if (array_intersect($idp['feds'], $feds)) {
+                    $oksuperfeds = !$superfeds || ($superfeds && array_intersect($superfeds, $idp['feds']));
+                    if (array_intersect($idp['feds'], $feds) && $oksuperfeds) {
                         $hits = 0;
                         foreach ($qs as $q) {
                             if (preg_match("/$q/", $idp['Keywords'][0]['value'])) {
@@ -182,7 +189,7 @@ class dsbe {
         }
         header('Content-Type: application/javascript');
         header('Content-Encoding: gzip');
-        print gzencode(json_encode(['spok' => $spok, 'qs' => $qs, 'found' => $found, 'rows' => $rows, 'feds' => $feds, 'idps' => $final, 'logo' => $logo, 'displayName' => $displayName], JSON_PRETTY_PRINT));
+        print gzencode(json_encode(['chosen' => $chosen, 'spok' => $spok, 'qs' => $qs, 'found' => $found, 'rows' => $rows, 'feds' => $feds, 'idps' => $final, 'logo' => $logo, 'displayName' => $displayName], JSON_PRETTY_PRINT));
         //self::timer();
     }
 
