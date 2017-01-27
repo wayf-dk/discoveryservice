@@ -11,7 +11,8 @@ window.ds = function(wayfhub, brief, show, logtag, prefix) {
     var dry = Boolean(urlParams['dry']);
 
     var wayfhack = urlParams.entityID == wayfhub;
-    feds = [];
+    var feds = [];
+    var superfeds = [];
 
     //var feds = ['WAYF'];
     var idplist = [];
@@ -36,11 +37,15 @@ window.ds = function(wayfhub, brief, show, logtag, prefix) {
 
     if (wayfhack) {
         // WAYF specific hack to get to the original SP
-        var authid = parseQuery(new URL(urlParams['return']).search)['AuthID'];
+        var returnurl = document.createElement('a');
+        returnurl.href = urlParams['return'];
+        var authid = parseQuery(returnurl.search)['AuthID'];
         if (authid) {
             authid = authid.split(':').slice(1).join(':');
             entityid = parseQuery(new URL(authid).search)['spentityid'];
         }
+        // and force feds to wayfhack
+        superfeds = ['HUBIDP'];
     }
 
     var delay = (function() {
@@ -99,6 +104,8 @@ window.ds = function(wayfhub, brief, show, logtag, prefix) {
         if (selectable >= idplist.length) {
             selectable = 0;
         } // if at end move to start
+
+        //while (selectable < chosen.length && document.getElementById('chosenlist').children[selectable].className.match(/\bdisabled\b/)) { selectable++; }
 
         list = selectable >= chosen.length ? 'foundlist' : 'chosenlist';
         sel = document.getElementById(list).children[selectable];
@@ -200,8 +207,10 @@ window.ds = function(wayfhub, brief, show, logtag, prefix) {
             end: end,
             lang: lang,
             feds: feds,
+            superfeds: superfeds,
             logtag: logtag,
-            delta: new Date() - starttime
+            delta: new Date() - starttime,
+            chosen: chosen.map(function (x) { return x.entityID; })
         };
 
         var params = Object.keys(urlvalue);
@@ -252,6 +261,7 @@ window.ds = function(wayfhub, brief, show, logtag, prefix) {
                 var name = lists[k][i].DisplayNames[lang];
                 if (!name) name = lists[k][i].DisplayNames.en;
                 var entityID = lists[k][i].entityID;
+                classs += k == 'chosenlist' && !dsbe.chosen[entityID] ? ' disabled' : '';
                 var title = JSON.stringify(lists[k][i].Keywords).slice(1, -1);
                 idplist[no] = {
                     DisplayNames: lists[k][i].DisplayNames,
@@ -280,6 +290,7 @@ window.ds = function(wayfhub, brief, show, logtag, prefix) {
                 display(dsbe.displayName, dsbe.rows, dsbe.found, true);
                 return;
             }
+
             renderrows(dsbe, query);
             feds = dsbe.feds; // when we start using ad-hoc feds
 
