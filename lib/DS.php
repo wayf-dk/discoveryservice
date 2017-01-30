@@ -39,11 +39,21 @@ class dsbe {
             call_user_func($function, $path);
         } else {
             $logtag = uniqid();
-            $prefix = '/' . join('/', $scriptnamepath) . '/';
+            $prefix = '/' . join('/', $scriptnamepath) . ($pathindex > 0 ? '/' : '');
             apache_note('logtag', $logtag);
             require('../lib/DS.html');
         }
     }
+
+    /**
+        dsfallback is called by the client if the normal javascript executions fails
+
+    */
+
+    static function dsfallback__($path) {
+        header("Location: https://wayf.wayf.dk/module.php/wayfdiscopower/disco.php?{$_SERVER['QUERY_STRING']}");
+    }
+
 
     /**
         dstiming is an emtpy function, is is only here to allow the timing ajax from the frontend
