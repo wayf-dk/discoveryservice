@@ -5,12 +5,13 @@
 
 window.ds = function(wayfhub, brief, show, logtag, prefix) {
     show = show || 100;
-    var diskofeed = location.protocol + '//' + location.hostname + prefix + 'dsbackend?';
+    var diskofeed = location.protocol + '//' + location.hostname + prefix + 'dsbackend';
     var starttime = new Date();
     var urlParams = this.urlParams = parseQuery(window.location.search);
     var dry = Boolean(urlParams['dry']);
+    var entityid = urlParams.entityID;
 
-    var wayfhack = urlParams.entityID == wayfhub;
+    var wayfhack = entityid == wayfhub;
     var feds = [];
     var superfeds = [];
 
@@ -20,7 +21,10 @@ window.ds = function(wayfhub, brief, show, logtag, prefix) {
     var searchInput = document.getElementById("searchInput");
 
     var cache = {};
-    document.documentElement.className += (("ontouchstart" in document.documentElement) ? ' touch' : ' no-touch');
+    var cursorKeysUsed = false;
+    var touch = "ontouchstart" in document.documentElement;
+
+    document.documentElement.className += touch ? ' touch' : ' no-touch';
 
     //searchInput.value = localStorage.query || "";
     //searchInput.selectionStart = searchInput.selectionEnd = searchInput.value.length;
@@ -33,7 +37,6 @@ window.ds = function(wayfhub, brief, show, logtag, prefix) {
     // automatically jumps to the bottom of the page for a better mobile experience
     // window.scroll(0, document.body.scrollHeight);
 
-    var entityid = urlParams.entityID;
 
     if (wayfhack) {
         // WAYF specific hack to get to the original SP
@@ -41,10 +44,10 @@ window.ds = function(wayfhub, brief, show, logtag, prefix) {
         returnurl.href = urlParams['return'];
         var authid = parseQuery(returnurl.search)['AuthID'];
         if (authid) {
-            authid = authid.split(':').slice(1).join(':');
-            entityid = parseQuery(new URL(authid).search)['spentityid'];
+            returnurl.href = authid.split(':').slice(1).join(':');
+            entityid = parseQuery(returnurl.search)['spentityid'];
         }
-        // and force feds to wayfhack
+        // and limit candidates to IdPs behind the hub
         superfeds = ['HUBIDP'];
     }
 
@@ -62,6 +65,7 @@ window.ds = function(wayfhub, brief, show, logtag, prefix) {
     document.getElementById("chosenlist").addEventListener("click", choose, false);
     document.getElementById("foundlist").addEventListener("click", choose, false);
     document.getElementsByTagName("body")[0].addEventListener("keydown", enter, false);
+    window.addEventListener("beforeunload", windowclose);
 
     search();
 
@@ -122,12 +126,14 @@ window.ds = function(wayfhub, brief, show, logtag, prefix) {
 
     function choose(e) {
         var no, target, last = null;
+        var choseby = 'click';
         searchInput.focus();
 
         var list = selectable >= chosen.length ? 'foundlist' : 'chosenlist';
         if (e == null) { // enter pressed
             var list =
                 target = document.getElementById(list).children[selectable].firstChild;
+            choseby = 'enter';
         } else {
             target = e.target;
         }
@@ -167,6 +173,9 @@ window.ds = function(wayfhub, brief, show, logtag, prefix) {
             search();
             setselectable(selectable, true);
         } else { // return with result
+            // we don't want to get the window close event if we leave as a result of the users choise
+            window.removeEventListener("beforeunload", windowclose);
+
             var entityID = idplist[no].entityID;
 
             if (wayfhack) {
@@ -178,10 +187,18 @@ window.ds = function(wayfhub, brief, show, logtag, prefix) {
             if (wayfhack) {
                 idp = idp.replace(/birk\.wayf\.dk\/birk\.php\//, '')
             };
-            var encodedidp = encodeURIComponent(idp);
+
+            var query = {
+                idp: idp,
+                logtag: logtag,
+                delta: new Date() - starttime,
+                choseby: choseby,
+                cursorKeysUsed: cursorKeysUsed,
+                touch: touch,
+                prevchosen: prevchosen
+            }
             var request = new XMLHttpRequest();
-            var delta = new Date() - starttime
-            request.open("GET", location.protocol + '//' + location.hostname + '/dstiming?logtag=' + logtag + '&delta=' + delta + '&idp=' + encodedidp + '', true);
+            request.open("GET", location.protocol + '//' + location.hostname + '/dstiming' + serialize(query), true);
             request.send();
             if (dry) {
                 alert('You are being sent to ' + displayName + ' (' + idp + ')');
@@ -192,16 +209,29 @@ window.ds = function(wayfhub, brief, show, logtag, prefix) {
         }
     }
 
+    function windowclose(e) {
+        var query = {
+            logtag: logtag,
+            delta: new Date() - starttime,
+            choseby: 'windowclose',
+            touch: touch
+        }
+        var request = new XMLHttpRequest();
+        request.open("GET", location.protocol + '//' + location.hostname + '/dstiming' + serialize(query), true);
+        request.send();
+    }
+
+
     /**
         discoverybackend handles the communication with the discovery backend
 
     */
 
-    function discoverybackend(entityID, query, start, end, feds, callback) {
+    function discoverybackend(first, entityID, query, start, end, feds, callback) {
         var async = Boolean(callback);
         var request = new XMLHttpRequest();
         var urlvalue = {
-            entityID: entityID,
+            entityID: first ? entityID : '',
             query: query,
             start: start,
             end: end,
@@ -210,16 +240,10 @@ window.ds = function(wayfhub, brief, show, logtag, prefix) {
             superfeds: superfeds,
             logtag: logtag,
             delta: new Date() - starttime,
-            chosen: chosen.map(function (x) { return x.entityID; })
+            chosen: first ? chosen.map(function (x) { return x.entityID; }) :  ''
         };
 
-        var params = Object.keys(urlvalue);
-        var param = '';
-        var delim = '';
-        for (var i = 0; i < params.length; i++) {
-            param += delim + params[i] + '=' + urlvalue[params[i]];
-            delim = '&';
-        }
+        param = serialize(urlvalue);
 
         // add entityID + lang for getting the name of the sp in the correct language
         // if no language the maybe don't return icon and name ???
@@ -268,7 +292,7 @@ window.ds = function(wayfhub, brief, show, logtag, prefix) {
                     entityID: entityID,
                     Keywords: lists[k][i].Keywords
                 };
-                rows[i] = '<div class="' + classs + ' metaentry"><div title="' + title + ' ' + no + '" class="idp" data-no="' + no + '">' + name + '</div><span title="Press enter to select">⏎</span></div>';
+                rows[i] = '<div class="' + classs + ' metaentry"><div title="' + title + '" class="idp" data-no="' + no + '">' + name + '</div><span title="Press enter to select">⏎</span></div>';
                 no++;
             }
             // fakedivs to make the selected work across the lists
@@ -285,7 +309,7 @@ window.ds = function(wayfhub, brief, show, logtag, prefix) {
     function search() {
         var query = searchInput.value.trim();
 
-        discoverybackend(requestcounter ? '' : entityid, query, 0, show, feds, function(dsbe) {
+        discoverybackend(!requestcounter,  entityid, query, 0, show, feds, function(dsbe) {
             if (!dsbe.spok) {
                 display(dsbe.displayName, dsbe.rows, dsbe.found, true);
                 return;
@@ -304,6 +328,8 @@ window.ds = function(wayfhub, brief, show, logtag, prefix) {
             document.getElementById('found').hidden = idplist.length > chosen.length ? false : true;
             document.getElementById('refine').hidden = (query || !brief) && dsbe.rows < dsbe.found ? false : true;
             setselectable(query == "" ? lastchosen : null, true);
+            // hide fall-back link to legacy DS if we reach this point
+            document.getElementById("legacyds").hidden = true;
         });
     }
 
@@ -330,9 +356,11 @@ window.ds = function(wayfhub, brief, show, logtag, prefix) {
         switch (keyPressed) {
             case "down":
                 setselectable(1);
+                cursorKeysUsed = true;
                 break;
             case "up":
                 setselectable(-1);
+                cursorKeysUsed = true;
                 break;
             case "enter":
                 choose(null);
@@ -347,8 +375,18 @@ window.ds = function(wayfhub, brief, show, logtag, prefix) {
         e.preventDefault();
     }
 
+
     /**
-        parseQuery converts the url search params to a map
+        encode query from object - from http://stackoverflow.com/questions/1714786/querystring-encoding-of-a-javascript-object
+
+    */
+
+    function serialize( obj ) {
+      return '?'+Object.keys(obj).reduce(function(a,k){a.push(k+'='+encodeURIComponent(obj[k]));return a},[]).join('&')
+    }
+
+    /**
+        parseQuery converts the url query params to a map
 
     */
 
