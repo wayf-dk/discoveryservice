@@ -325,11 +325,9 @@ window.ds = function(wayfhub, brief, show, logtag, prefix) {
             }
             requestcounter++;
             display(cache.spName, dsbe.rows, dsbe.found);
-            document.getElementById('found').hidden = idplist.length > chosen.length ? false : true;
-            document.getElementById('refine').hidden = (query || !brief) && dsbe.rows < dsbe.found ? false : true;
+            document.getElementById('found').style.display = idplist.length > chosen.length ? 'block' : 'none';
+            document.getElementById('refine').style.display = (query || !brief) && dsbe.rows < dsbe.found ? 'block' : 'none';
             setselectable(query == "" ? lastchosen : null, true);
-            // hide fall-back link to legacy DS if we reach this point
-            document.getElementById("legacyds").hidden = true;
         });
     }
 
