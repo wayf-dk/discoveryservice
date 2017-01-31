@@ -29,8 +29,6 @@ class dsbe {
 
         $cmd = isset($path[$pathindex]) ? $path[$pathindex] : '';
 
-        $cmd = isset($path[0]) ? $path[0] : '';
-
         $function = "self::$cmd" . '__';
 
         if (is_callable($function)) {
