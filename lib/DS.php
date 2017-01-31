@@ -84,9 +84,11 @@ class dsbe {
         $logo = $displayName = null;
 
         if ($entityID) {
-            if ($spmetadata = @file_get_contents($cfg['mdq'] . '{sha1}' .  sha1($entityID), false,stream_context_create(array(
-                                                                                             'http' => array(
-                                                                                                'ignore_errors' => true))))) {
+            $spmetadatapath = $cfg['mdq'] . '{sha1}' .  sha1($entityID);
+            if ($handle = fopen($spmetadatapath, 'r')) {
+                $spmetadatstats = fstat($handle);
+                $spmetadata = fread($handle, $spmetadatstats['size']);
+                fclose($handle);
 
                 $spxp = xp::xpFromString($spmetadata);
                 $logo = $spxp->query("md:SPSSODescriptor/md:Extensions/mdui:UIInfo/mdui:Logo")->item(0);
@@ -197,7 +199,7 @@ class dsbe {
         }
         header('Content-Type: application/javascript');
         header('Content-Encoding: gzip');
-        print gzencode(json_encode(['chosen' => $chosen, 'spok' => $spok, 'qs' => $qs, 'found' => $found, 'rows' => $rows, 'feds' => $feds, 'idps' => $final, 'logo' => $logo, 'displayName' => $displayName], JSON_PRETTY_PRINT));
+        print gzencode(json_encode(['spok' => $spok, 'chosen' => $chosen, 'qs' => $qs, 'found' => $found, 'rows' => $rows, 'feds' => $feds, 'idps' => $final, 'logo' => $logo, 'displayName' => $displayName], JSON_PRETTY_PRINT));
         //self::timer();
     }
 
