@@ -204,7 +204,7 @@ window.ds = function(wayfhub, brief, show, logtag, prefix) {
                 alert('You are being sent to ' + displayName + ' (' + idp + ')');
                 window.location = window.location;
             } else {
-                window.location = '' + urlParams['return'] + '&' + urlParams['returnIDParam'] + '=' + encodedidp + '';
+                window.location = '' + urlParams['return'] + '&' + urlParams['returnIDParam'] + '=' + encodeURIComponent(idp) + '';
             }
         }
     }
