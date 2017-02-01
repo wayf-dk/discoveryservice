@@ -30,6 +30,7 @@ window.ds = function(wayfhub, brief, show, logtag, prefix) {
     //searchInput.selectionStart = searchInput.selectionEnd = searchInput.value.length;
 
     var chosen = JSON.parse(localStorage.entityID || "[]");
+    var relevantchosen = [];
     var lastchosen = parseInt(localStorage.lastchosen || '0');
     var selectable = 0;
     var requestcounter = 0;
@@ -285,7 +286,7 @@ window.ds = function(wayfhub, brief, show, logtag, prefix) {
                 var name = lists[k][i].DisplayNames[lang];
                 if (!name) name = lists[k][i].DisplayNames.en;
                 var entityID = lists[k][i].entityID;
-                classs += k == 'chosenlist' && !dsbe.chosen[entityID] ? ' disabled' : '';
+                classs += k == 'chosenlist' && !relevantchosen[entityID] ? ' disabled' : '';
                 var title = JSON.stringify(lists[k][i].Keywords).slice(1, -1);
                 idplist[no] = {
                     DisplayNames: lists[k][i].DisplayNames,
@@ -315,14 +316,16 @@ window.ds = function(wayfhub, brief, show, logtag, prefix) {
                 return;
             }
 
-            renderrows(dsbe, query);
-            feds = dsbe.feds; // when we start using ad-hoc feds
-
             if (!requestcounter) {
                 spIcon.src = dsbe.logo || 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs='
                 //spIcon.style.display = "block";
                 cache.spName = dsbe.displayName || entityid;
+                relevantchosen = dsbe.chosen;
             }
+
+            renderrows(dsbe, query);
+            feds = dsbe.feds; // when we start using ad-hoc feds
+
             requestcounter++;
             display(cache.spName, dsbe.rows, dsbe.found);
             document.getElementById('found').style.display = idplist.length > chosen.length ? 'block' : 'none';
