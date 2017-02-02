@@ -1,9 +1,11 @@
+'use strict';
+
 /**
     ds is a javascript object that handles the client side logic of the WAYF discovery service
 
 */
 
-window.ds = function(wayfhub, brief, show, logtag, prefix) {
+window.ds = function (wayfhub, brief, show, logtag, prefix) {
     show = show || 100;
     var diskofeed = location.protocol + '//' + location.hostname + prefix + 'dsbackend';
     var starttime = new Date();
@@ -52,15 +54,15 @@ window.ds = function(wayfhub, brief, show, logtag, prefix) {
         superfeds = ['HUBIDP'];
     }
 
-    var delay = (function() {
+    var delay = function () {
         var timer = 0;
-        return function(callback, ms) {
+        return function (callback, ms) {
             clearTimeout(timer);
             timer = setTimeout(callback, ms);
         };
-    })();
+    }();
 
-    searchInput.addEventListener("input", function() {
+    searchInput.addEventListener("input", function () {
         delay(search, 200);
     }, false);
     document.getElementById("chosenlist").addEventListener("click", choose, false);
@@ -70,30 +72,33 @@ window.ds = function(wayfhub, brief, show, logtag, prefix) {
 
     search();
 
-    this.changelang = function() {
+    this.changelang = function () {
         lang = {
             da: 'en',
             en: 'da'
         }[lang];
         search();
         searchInput.focus();
-    }
+    };
 
     /**
         setselectable handles setting the idp that is selectable using the enter/return key
+     */
 
-    */
-
-    function setselectable(no, absolute) { // no == -1 prev, 0 1st in list, 1 next, null 1st in filtered list
+    function setselectable(no, absolute) {
+        // no == -1 prev, 0 1st in list, 1 next, null 1st in filtered list
         absolute = absolute || false;
         var list = selectable >= chosen.length ? 'foundlist' : 'chosenlist';
         var sel = document.getElementById(list).children[selectable];
         if (sel != null && sel.firstChild != null) {
             // ie 9 classList.remove
-            sel.className = sel.className.split(' ').filter(function(v) { return v != 'selected'}).join(' ');
+            sel.className = sel.className.split(' ').filter(function (v) {
+                return v != 'selected';
+            }).join(' ');
         }
 
-        if (no == null) { // after search set to 1st in filtered list
+        if (no == null) {
+            // after search set to 1st in filtered list
             selectable = chosen.length;
             no = 1;
         } else if (absolute) {
@@ -122,40 +127,45 @@ window.ds = function(wayfhub, brief, show, logtag, prefix) {
 
     /**
         choose handles the actual selection of the idp either by a click or by the enter/return key
-
-    */
+     */
 
     function choose(e) {
-        var no, target, last = null;
+        var no,
+            target,
+            last = null;
         var choseby = 'click';
         searchInput.focus();
 
         var list = selectable >= chosen.length ? 'foundlist' : 'chosenlist';
-        if (e == null) { // enter pressed
-            var list =
-                target = document.getElementById(list).children[selectable].firstChild;
+        if (e == null) {
+            // enter pressed
+            var list = target = document.getElementById(list).children[selectable].firstChild;
             choseby = 'enter';
         } else {
             target = e.target;
         }
         no = target.attributes.getNamedItem("data-no");
-        if (no == null) { // not an IdP element - might be a chosen wrapper
-            if (target.classList.contains("chosen")) { // delete one already chosen
+        if (no == null) {
+            // not an IdP element - might be a chosen wrapper
+            if (target.classList.contains("chosen")) {
+                // delete one already chosen
                 tobedeleted = parseInt(target.firstChild.attributes.getNamedItem("data-no").value);
-                chosen = chosen.filter(function(e, i) {
+                chosen = chosen.filter(function (e, i) {
                     return tobedeleted != i;
                 });
             } else {
                 return;
             }
-        } else { // return with selected IdP
+        } else {
+            // return with selected IdP
             no = parseInt(no.value);
 
-            var prevchosen = chosen.some(function(item) {
+            var prevchosen = chosen.some(function (item) {
                 return idplist[no].entityID == item.entityID;
             });
 
-            if (!prevchosen) { // new
+            if (!prevchosen) {
+                // new
                 chosen.unshift(idplist[no]);
                 chosen = chosen.slice(0, maxrememberchosen);
                 last = 0;
@@ -168,25 +178,27 @@ window.ds = function(wayfhub, brief, show, logtag, prefix) {
 
         localStorage.entityID = JSON.stringify(chosen);
 
-        if (no == null) { // update display
+        if (no == null) {
+            // update display
             selectable = Math.max(0, Math.min(chosen.length - 1, selectable));
-            localStorage.lastchosen = selectable
+            localStorage.lastchosen = selectable;
             search();
             setselectable(selectable, true);
-        } else { // return with result
+        } else {
+            // return with result
             // we don't want to get the window close event if we leave as a result of the users choise
             window.removeEventListener("beforeunload", windowclose);
 
             var entityID = idplist[no].entityID;
 
             if (wayfhack) {
-                entityID = entityID.replace(/birk\.wayf\.dk\/birk\.php\//, '')
-                entityID = entityID.replace(/^urn:oid:1.3.6.1.4.1.39153:42:/, '')
+                entityID = entityID.replace(/birk\.wayf\.dk\/birk\.php\//, '');
+                entityID = entityID.replace(/^urn:oid:1.3.6.1.4.1.39153:42:/, '');
             }
             var displayName = idplist[no].DisplayNames[lang] || idplist[no].DisplayNames.en;
             var idp = idplist[no].entityID;
             if (wayfhack) {
-                idp = idp.replace(/birk\.wayf\.dk\/birk\.php\//, '')
+                idp = idp.replace(/birk\.wayf\.dk\/birk\.php\//, '');
             };
 
             var query = {
@@ -197,7 +209,7 @@ window.ds = function(wayfhub, brief, show, logtag, prefix) {
                 cursorKeysUsed: cursorKeysUsed,
                 touch: touch,
                 prevchosen: prevchosen
-            }
+            };
             var request = new XMLHttpRequest();
             request.open("GET", location.protocol + '//' + location.hostname + '/dstiming' + serialize(query), true);
             request.send();
@@ -216,17 +228,15 @@ window.ds = function(wayfhub, brief, show, logtag, prefix) {
             delta: new Date() - starttime,
             choseby: 'windowclose',
             touch: touch
-        }
+        };
         var request = new XMLHttpRequest();
         request.open("GET", location.protocol + '//' + location.hostname + '/dstiming' + serialize(query), true);
         request.send();
     }
 
-
     /**
         discoverybackend handles the communication with the discovery backend
-
-    */
+     */
 
     function discoverybackend(first, entityID, query, start, end, feds, callback) {
         var async = Boolean(callback);
@@ -241,17 +251,19 @@ window.ds = function(wayfhub, brief, show, logtag, prefix) {
             superfeds: superfeds,
             logtag: logtag,
             delta: new Date() - starttime,
-            chosen: first ? chosen.map(function (x) { return x.entityID; }) :  ''
+            chosen: first ? chosen.map(function (x) {
+                return x.entityID;
+            }) : ''
         };
 
-        param = serialize(urlvalue);
+        var param = serialize(urlvalue);
 
         // add entityID + lang for getting the name of the sp in the correct language
         // if no language the maybe don't return icon and name ???
         request.open("GET", diskofeed + param, async);
         request.send();
         if (async) {
-            request.onreadystatechange = function() {
+            request.onreadystatechange = function () {
                 if (request.readyState == XMLHttpRequest.DONE) {
                     if (request.status >= 200 && request.status < 400) {
                         callback(JSON.parse(request.responseText));
@@ -268,18 +280,17 @@ window.ds = function(wayfhub, brief, show, logtag, prefix) {
 
     /**
         renderrows handles the rendering of the previously chosen idps as well as the search result
-
-    */
+     */
 
     function renderrows(dsbe, query) {
         idplist = [];
         var lists = {
             chosenlist: chosen,
             foundlist: query || !brief || dsbe.rows == dsbe.found ? dsbe.idps : []
-        }
+        };
 
         var no = 0;
-        Object.keys(lists).forEach(function(k) {
+        Object.keys(lists).forEach(function (k) {
             var rows = [];
             for (var i = 0; i < lists[k].length; i++) {
                 var classs = k == 'chosenlist' ? 'chosen' : 'unchosen';
@@ -304,20 +315,19 @@ window.ds = function(wayfhub, brief, show, logtag, prefix) {
 
     /**
         search handles the search - is called when the search input field changes
-
-    */
+     */
 
     function search() {
         var query = searchInput.value.trim();
 
-        discoverybackend(!requestcounter,  entityid, query, 0, show, feds, function(dsbe) {
+        discoverybackend(!requestcounter, entityid, query, 0, show, feds, function (dsbe) {
             if (!dsbe.spok) {
                 display(dsbe.displayName, dsbe.rows, dsbe.found, true);
                 return;
             }
 
             if (!requestcounter) {
-                spIcon.src = dsbe.logo || 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs='
+                spIcon.src = dsbe.logo || 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=';
                 //spIcon.style.display = "block";
                 cache.spName = dsbe.displayName || entityid;
                 relevantchosen = dsbe.chosen;
@@ -336,15 +346,15 @@ window.ds = function(wayfhub, brief, show, logtag, prefix) {
 
     /**
         enter handles keypresses
+     */
 
-    */
-
-    function enter(e) { // eslint-disable-line no-unused-vars
+    function enter(e) {
+        // eslint-disable-line no-unused-vars
         var keyCodeMappings = {
             13: "enter",
             27: "escape",
             38: "up",
-            40: "down",
+            40: "down"
         };
 
         var keyPressed = keyCodeMappings[e.keyCode];
@@ -376,31 +386,31 @@ window.ds = function(wayfhub, brief, show, logtag, prefix) {
         e.preventDefault();
     }
 
-
     /**
         encode query from object - from http://stackoverflow.com/questions/1714786/querystring-encoding-of-a-javascript-object
+     */
 
-    */
-
-    function serialize( obj ) {
-      return '?'+Object.keys(obj).reduce(function(a,k){a.push(k+'='+encodeURIComponent(obj[k]));return a},[]).join('&')
+    function serialize(obj) {
+        return '?' + Object.keys(obj).reduce(function (a, k) {
+            a.push(k + '=' + encodeURIComponent(obj[k]));return a;
+        }, []).join('&');
     }
 
     /**
         parseQuery converts the url query params to a map
-
-    */
+     */
 
     function parseQuery(query) {
         var urlParams = {};
         var match;
         var pl = /\+/g; // Regex for replacing addition symbol with a space
         var re = /([^&=]+)=?([^&]*)/g;
-        var decode = function(s) {
+        var decode = function decode(s) {
             return decodeURIComponent(s.replace(pl, " "));
         };
         query = query.replace(/^\?/, '');
-        while (match = re.exec(query)) { // eslint-disable-line no-cond-assign
+        while (match = re.exec(query)) {
+            // eslint-disable-line no-cond-assign
             urlParams[decode(match[1])] = decode(match[2]);
         }
 

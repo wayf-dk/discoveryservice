@@ -106,7 +106,7 @@
         try {
 		    var se = new ds('https://wayf.wayf.dk', false, 100, '<?= $logtag ?>', '<?= $prefix ?>');
 		} catch (e) {
-		    window.location = "/dsfallback?logtag=<?= $logtag ?>&" + window.location.search;
+		    window.location = "/dsfallback?logtag=<?= $logtag ?>&" + window.location.search.substr(1);
 		}
 	</script>
 </body>
