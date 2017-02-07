@@ -71,7 +71,7 @@ class dsbe {
     */
 
     static function dsbackend__($path) {
-        extract(self::ex($_GET, 'entityID', 'query', 'start', 'end', 'lang', 'feds', 'superfeds', 'chosen'));
+        extract(self::ex($_GET, 'entityID', 'query', 'start', 'end', 'lang', 'feds', 'superfeds', 'chosen', 'logtag'));
         $tobefound = $end - $start;
         $spmetadata = false;
         $cfg = self::$config;
@@ -85,7 +85,13 @@ class dsbe {
 
         if ($entityID) {
             $spmetadatapath = $cfg['mdq'] . '{sha1}' .  sha1($entityID);
-            if ($handle = fopen($spmetadatapath, 'r')) {
+            $handle = @fopen($spmetadatapath, 'r');
+            if (!$handle) { // try a 2nd time after clearing the realpath_cache - lMDQ might have changed the path
+                clearstatcache(true);
+                $handle = @fopen($spmetadatapath, 'r');
+            }
+
+            if ($handle) {
                 $spmetadatstats = fstat($handle);
                 $spmetadata = fread($handle, $spmetadatstats['size']);
                 fclose($handle);
@@ -111,6 +117,8 @@ class dsbe {
                     }
                 }
                 self::timer('md for sp');
+            } else {
+                error_log("dsbackend not found: $logtag $entityID");
             }
         }
 
