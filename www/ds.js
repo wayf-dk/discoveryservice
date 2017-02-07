@@ -149,7 +149,7 @@ window.ds = function (wayfhub, brief, show, logtag, prefix) {
             // not an IdP element - might be a chosen wrapper
             if (target.classList.contains("chosen")) {
                 // delete one already chosen
-                tobedeleted = parseInt(target.firstChild.attributes.getNamedItem("data-no").value);
+                var tobedeleted = parseInt(target.firstChild.attributes.getNamedItem("data-no").value);
                 chosen = chosen.filter(function (e, i) {
                     return tobedeleted != i;
                 });
