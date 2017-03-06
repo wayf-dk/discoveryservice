@@ -10,6 +10,7 @@ window.ds = function (wayfhub, brief, show, logtag, prefix) {
     var diskofeed = location.protocol + '//' + location.hostname + prefix + 'dsbackend';
     var starttime = new Date();
     var urlParams = this.urlParams = parseQuery(window.location.search);
+    urlParams['returnIDParam'] = urlParams['returnIDParam'] || 'entityID';
     var dry = Boolean(urlParams['dry']);
     var entityid = urlParams.entityID;
 
