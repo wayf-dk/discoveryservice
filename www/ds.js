@@ -74,10 +74,7 @@ window.ds = function (wayfhub, brief, show, logtag, prefix) {
     search();
 
     this.changelang = function () {
-        lang = {
-            da: 'en',
-            en: 'da'
-        }[lang];
+        lang = lang == 'da' ? 'en' : 'da';
         search();
         searchInput.focus();
     };
