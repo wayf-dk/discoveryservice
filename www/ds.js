@@ -33,7 +33,6 @@ window.ds = function (wayfhub, brief, show, logtag, prefix) {
     //searchInput.selectionStart = searchInput.selectionEnd = searchInput.value.length;
 
     var chosen = JSON.parse(localStorage.entityID || "[]");
-    chosen = [{"DisplayNames":{"da":"Erhvervsakademi Aarhus","en":"Business Academy Aarhus"},"entityID":"http://birk.wayf.dk/birk.php/eaa-fs.efif.dk/adfs/services/trust","Keywords":"erhvervsakademiaarhus.dk erhvervsakademi aarhus business academy"},{"DisplayNames":{"da":"WAYF Orphanage","en":"WAYF Orphanage"},"entityID":"https://birk.wayf.dk/birk.php/orphanage.wayf.dk","Keywords":"wayf orphanage orphanage.wayf.dk"},{"DisplayNames":{"da":"Danmarks Tekniske Universitet","en":"Technical University of Denmark"},"entityID":"https://birk.wayf.dk/birk.php/wayf.ait.dtu.dk/saml2/idp/metadata.php","Keywords":"dtu.dk danmarks tekniske universitet technical university of denmark"},{"DisplayNames":{"da":"Det Danske Sprog- og Litteraturselskab","en":"Society for Danish Language and Literature"},"entityID":"https://xbirk.wayf.dk/birk.php/wayf.dsl.dk/saml2/idp/metadata.php","Keywords":"dsl.dk det danske sprog- og litteraturselskab society for danish language and literature"},{"DisplayNames":{"da":"Aarhus Universitet","en":"Aarhus University"},"entityID":"https://birk.wayf.dk/birk.php/wayf.au.dk","Keywords":"au.dk aarhus universitet university"},{"DisplayNames":{"da":"Aalborg Universitet","en":"Aalborg University"},"entityID":"https://birk.wayf.dk/birk.php/wayf.aau.dk","Keywords":"aalborg universitet university adm.aau.dkaau.dk aub.aau.dkaau.dk civil.aau.dkaau.dk create.aau.dkaau.dk es.aau.dkaau.dk hst.aau.dkaau.dk id.aau.dkaau.dk its.aau.dkaau.dk learning.aau.dkaau.dk m-tech.aau.dkaau.dk plan.aau.dkaau.dk sbi.aau.dkaau.dk staff.aau.dkaau.dk student.aau.dkaau.dk aau.dk"}]
     var relevantchosen = [];
     var lastchosen = parseInt(localStorage.lastchosen || '0');
     var selectable = 0;
@@ -338,7 +337,7 @@ window.ds = function (wayfhub, brief, show, logtag, prefix) {
                         lastchosen = 0; // if an entity really is removed reset lastchosen
                     }
                 }
-                //chosen = filteredchosen;
+                chosen = filteredchosen;
             }
 
             renderrows(dsbe, query);
