@@ -79,7 +79,7 @@ class dsbe {
         $feds = $feds ? explode(',', $feds) : [];
         $superfeds = $superfeds ? explode(',', $superfeds) : [];
         $chosen = $chosen ? explode(',', $chosen) : [];
-        $chosen = array_fill_keys($chosen, 0);
+        $chosen = array_fill_keys($chosen, 0); // 0 and NOT false to be able to spot entities not active any longer
 
         $logo = $displayName = null;
 
